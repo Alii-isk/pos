@@ -10,10 +10,13 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@nanostores/react": "^0.7.1",
     "@tauri-apps/api": "^1.4.0",
-    "antd": "^5.9.1",
+    "bulma": "^0.9.4",
+    "nanostores": "^0.9.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "zustand": "^4.4.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.4.0",
