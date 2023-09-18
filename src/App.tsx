@@ -1,29 +1,34 @@
+import ProductsManagments from "./components/manage-products";
 import Products from "./components/products";
 import { useUIStore } from "./store/ui";
+import { Button } from "@nextui-org/react";
 
 const App: React.FC = () => {
   const isProductModalOpen = useUIStore((x) => x.isProductModalOpen);
   const toggleProductModal = useUIStore((x) => x.toggleProductModal);
 
   return (
-    <div className="w-screen h-screen">
-      {/* <Products/> */}
-      {isProductModalOpen ? (
-        <Products />
-      ) : (
-        <div className=" w-full h-full flex gap-4 justify-center items-center">
-          <button className="w-32 h-32 rounded-lg text-white bg-red-700  flex justify-center items-center ">
-            انشاء فاتورة
-          </button>
-          <button
-            onClick={toggleProductModal}
-            className="w-32 h-32 rounded-lg text-white bg-green-700  flex justify-center items-center "
-          >
-            المنتجات
-          </button>
-        </div>
-      )}
-    </div>
+    <>
+        <div className="w-screen h-screen max-w-4xl mx-auto p-5">
+        {/* <Products/> */}
+        {isProductModalOpen ? (
+          <ProductsManagments />
+        ) : (
+          <div className=" w-full h-full flex gap-4 justify-center items-center">
+            <Button color="default" variant="faded">
+              انشاء فاتورة
+            </Button>
+            <Button
+              variant="faded"
+              onClick={toggleProductModal}
+              color="default"
+            >
+              المنتجات
+            </Button>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
