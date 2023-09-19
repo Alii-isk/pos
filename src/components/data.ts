@@ -1,7 +1,7 @@
 import React from "react";
 
 const columns = [
-  // {name: "ID", uid: "id", sortable: true},
+  {name: "ID", uid: "id", sortable: true},
   {name: "NAME", uid: "name", sortable: true},
   {name: "PRICE", uid: "role", sortable: true},
   {name: "ACTIONS", uid: "actions"},
