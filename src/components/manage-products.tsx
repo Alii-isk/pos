@@ -14,7 +14,7 @@ import {
   DropdownMenu,
   DropdownItem,
   Chip,
-  User,
+  User as Product,
   Pagination,
   Selection,
   SortDescriptor,
@@ -29,13 +29,16 @@ import { capitalize } from "./utils";
 import { EditIcon } from "./icons/EditIcon";
 import { DeleteIcon } from "./icons/DeleteIcon";
 
-type User = (typeof products)[0];
+type Product = (typeof products)[0];
 
 export default function App() {
   const [filterValue, setFilterValue] = React.useState("");
-  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
+  const [selectedKeys, setSelectedKeys] = React.useState(
     new Set([])
   );
+
+  const [selectedQuantity, setSelectedQuantity] = React.useState([
+  ]);
   const [statusFilter, setStatusFilter] = React.useState<Selection>("all");
   const [rowsPerPage, setRowsPerPage] = React.useState(100);
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
@@ -52,7 +55,7 @@ export default function App() {
 
     if (hasSearchFilter) {
       filteredProducts = filteredProducts.filter((product) =>
-      product.name.toLowerCase().includes(filterValue.toLowerCase())
+        product.name.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
 
@@ -69,38 +72,38 @@ export default function App() {
   }, [page, filteredItems, rowsPerPage]);
 
   const sortedItems = React.useMemo(() => {
-    return [...items].sort((a: User, b: User) => {
-      const first = a[sortDescriptor.column as keyof User] as number;
-      const second = b[sortDescriptor.column as keyof User] as number;
+    return [...items].sort((a: Product, b: Product) => {
+      const first = a[sortDescriptor.column as keyof Product] as number;
+      const second = b[sortDescriptor.column as keyof Product] as number;
       const cmp = first < second ? -1 : first > second ? 1 : 0;
 
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((user: User, columnKey: React.Key) => {
-    const cellValue = user[columnKey as keyof User];
-
-    switch (columnKey) {
-      case "name":
-        return (
-          <User
-            avatarProps={{ radius: "lg", src: user.avatar }}
-            description={user.email}
-            name={cellValue}
-          >
-            {user.email}
-          </User>
-        );
-      case "role":
-        return (
-          <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">
-              {user.team}
-            </p>
-          </div>
-        );
+  const renderCell = React.useCallback(
+    (product: Product, columnKey: React.Key) => {
+      const cellValue = product[columnKey as keyof Product];
+      switch (columnKey) {
+        case "name":
+          return (
+            <Product
+              avatarProps={{ radius: "lg", src: product.avatar }}
+              description={product.email}
+              name={cellValue}
+            >
+              {product.email}
+            </Product>
+          );
+        case "role":
+          return (
+            <div className="flex flex-col">
+              <p className="text-bold text-small capitalize">{cellValue}</p>
+              <p className="text-bold text-tiny capitalize text-default-400">
+                {product.team}
+              </p>
+            </div>
+          );
         case "actions":
           return (
             <div className="relative flex items-center gap-2">
@@ -116,10 +119,22 @@ export default function App() {
               </Tooltip>
             </div>
           );
-      default:
-        return cellValue;
-    }
-  }, []);
+        default:
+          // // if id is in selectedKeys, then return x1 else x0
+          // if (selectedKeys.has(product.id.toString())) {
+          //   // get the quantity of the product
+          //   const quantity = selectedQuantity.find(
+          //     (item) => item.id === product.id
+          //   )?.quantity;
+          //   return `${quantity} qty - ${cellValue}`;
+          // } else {
+          //   return `0 qty - ${cellValue}`;
+          // }
+          return 22;
+      }
+    },
+    []
+  );
 
   const onNextPage = React.useCallback(() => {
     if (page < pages) {
@@ -178,7 +193,7 @@ export default function App() {
           <span className="text-default-400 text-small">
             Total {products.length} products
           </span>
-          <label className="flex items-center text-default-400 text-small">
+          {/* <label className="flex items-center text-default-400 text-small">
             Rows per page:
             <select
               className="bg-transparent outline-none text-default-400 text-small"
@@ -187,7 +202,7 @@ export default function App() {
               <option value="15">100</option>
               <option value="10">10</option>
             </select>
-          </label>
+          </label> */}
         </div>
       </div>
     );
@@ -200,61 +215,44 @@ export default function App() {
     hasSearchFilter,
   ]);
 
-  const bottomContent = React.useMemo(() => {
-    return (
-      <div className="py-2 px-2 flex justify-between items-center">
-        <span className="w-[30%] text-small text-default-400">
-          {selectedKeys === "all"
-            ? "All items selected"
-            : `${selectedKeys.size} of ${filteredItems.length} selected`}
-        </span>
-        <Pagination
-          isCompact
-          showControls
-          showShadow
-          color="primary"
-          page={page}
-          total={pages}
-          onChange={setPage}
-        />
-        <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button
-            isDisabled={pages === 1}
-            size="sm"
-            variant="flat"
-            onPress={onPreviousPage}
-          >
-            Previous
-          </Button>
-          <Button
-            isDisabled={pages === 1}
-            size="sm"
-            variant="flat"
-            onPress={onNextPage}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-    );
-  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
-
   return (
     <Table
       aria-label="Example table with custom cells, pagination and sorting"
       isHeaderSticky
-      bottomContent={bottomContent}
+      color={"success"}
+      // bottomContent={bottomContent}
       bottomContentPlacement="outside"
       classNames={{
-        wrapper: "max-h-[482px]",
+        wrapper: "w-full",
       }}
-      // selectedKeys={selectedKeys}
-      // selectionMode="multiple"
+      selectedKeys={selectedKeys}
+      selectionMode="single"
       sortDescriptor={sortDescriptor}
       topContent={topContent}
       topContentPlacement="outside"
-      onSelectionChange={setSelectedKeys}
+      onSelectionChange={(keys) => {
+        // const unselectedKeys = new Array(...keys);
+        // if (unselectedKeys.length == 1) {
+        //   setSelectedKeys((x) => new Set([...x, unselectedKeys[0] as string]));
+        //   const idd = parseInt(unselectedKeys[0] as string);
+        //   console.log("adding id : ", idd);
+        //   setSelectedQuantity((x) => [...x, { id: idd, quantity: 1 }]);
+        //   console.log({ selectedQuantity });
+        //   return;
+        // }
+        // const selectedKey = new Array(...selectedKeys).find(
+        //   (key) => !unselectedKeys.includes(key)
+        // );
+        // console.log({ selectedKey });
+
+        // const quantity = selectedQuantity.find((item) => item.id === parseInt(id))
+        // ?.quantity;
+        // console.log({id,quantity});
+      }}
       onSortChange={setSortDescriptor}
+      onRowAction={(key) => {
+        console.log(`Opening item ${key}...`);
+      }}
     >
       <TableHeader columns={columns}>
         {(column) => (
@@ -270,9 +268,9 @@ export default function App() {
       <TableBody emptyContent={"No users found"} items={sortedItems}>
         {(item) => (
           <TableRow key={item.id}>
-            {(columnKey) => (
-              <TableCell>{renderCell(item, columnKey)}</TableCell>
-            )}
+            {(columnKey) => {
+              return <TableCell>{renderCell(item, columnKey)}</TableCell>;
+            }}
           </TableRow>
         )}
       </TableBody>
