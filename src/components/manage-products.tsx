@@ -33,12 +33,11 @@ type Product = (typeof products)[0];
 
 export default function App() {
   const [filterValue, setFilterValue] = React.useState("");
-  const [selectedKeys, setSelectedKeys] = React.useState(
-    new Set([])
+  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
+    new Set(["1"])
   );
 
-  const [selectedQuantity, setSelectedQuantity] = React.useState([
-  ]);
+  const [selectedQuantity, setSelectedQuantity] = React.useState([]);
   const [statusFilter, setStatusFilter] = React.useState<Selection>("all");
   const [rowsPerPage, setRowsPerPage] = React.useState(100);
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
@@ -83,24 +82,25 @@ export default function App() {
 
   const renderCell = React.useCallback(
     (product: Product, columnKey: React.Key) => {
+      console.log("columnKey : ", columnKey);
       const cellValue = product[columnKey as keyof Product];
       switch (columnKey) {
         case "name":
           return (
             <Product
               avatarProps={{ radius: "lg", src: product.avatar }}
-              description={product.email}
+              description={product.name}
               name={cellValue}
             >
-              {product.email}
+              {/* {product.email} */}
             </Product>
           );
-        case "role":
+        case "price":
           return (
             <div className="flex flex-col">
               <p className="text-bold text-small capitalize">{cellValue}</p>
               <p className="text-bold text-tiny capitalize text-default-400">
-                {product.team}
+                درهم
               </p>
             </div>
           );
@@ -119,6 +119,40 @@ export default function App() {
               </Tooltip>
             </div>
           );
+        case "quantity":
+          return (
+            //number input with increment and decrement buttons
+            <div className="flex gap-4 items-center">
+              <Button isIconOnly color="danger" aria-label="Like">
+                <DeleteIcon />
+              </Button>
+              {/* <Input
+                // type="number"
+                color={"secondary"}
+                inputMode="numeric"
+                placeholder="0"
+                className="max-w-[100px] text-center z-20"
+              /> */}
+              <input type="number" 
+              className="z-50"
+              onClick={
+                (e)=>{
+                  e.stopPropagation()
+                  console.log("clicked")
+                  e.preventDefault()
+                }
+              } name="hello" placeholder="0" id="" />
+
+              <Button
+                isIconOnly
+                color="warning"
+                variant="faded"
+                aria-label="Take a photo"
+              >
+                <DeleteIcon />
+              </Button>
+            </div>
+          );
         default:
           // // if id is in selectedKeys, then return x1 else x0
           // if (selectedKeys.has(product.id.toString())) {
@@ -135,18 +169,6 @@ export default function App() {
     },
     []
   );
-
-  const onNextPage = React.useCallback(() => {
-    if (page < pages) {
-      setPage(page + 1);
-    }
-  }, [page, pages]);
-
-  const onPreviousPage = React.useCallback(() => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
-  }, [page]);
 
   const onRowsPerPageChange = React.useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -226,32 +248,15 @@ export default function App() {
         wrapper: "w-full",
       }}
       selectedKeys={selectedKeys}
-      selectionMode="single"
+      selectionMode="multiple"
       sortDescriptor={sortDescriptor}
+      
       topContent={topContent}
       topContentPlacement="outside"
-      onSelectionChange={(keys) => {
-        // const unselectedKeys = new Array(...keys);
-        // if (unselectedKeys.length == 1) {
-        //   setSelectedKeys((x) => new Set([...x, unselectedKeys[0] as string]));
-        //   const idd = parseInt(unselectedKeys[0] as string);
-        //   console.log("adding id : ", idd);
-        //   setSelectedQuantity((x) => [...x, { id: idd, quantity: 1 }]);
-        //   console.log({ selectedQuantity });
-        //   return;
-        // }
-        // const selectedKey = new Array(...selectedKeys).find(
-        //   (key) => !unselectedKeys.includes(key)
-        // );
-        // console.log({ selectedKey });
-
-        // const quantity = selectedQuantity.find((item) => item.id === parseInt(id))
-        // ?.quantity;
-        // console.log({id,quantity});
-      }}
+      onSelectionChange={setSelectedKeys}
       onSortChange={setSortDescriptor}
-      onRowAction={(key) => {
-        console.log(`Opening item ${key}...`);
+      onRowAction={(item) => {
+        console.log("item : ", item);
       }}
     >
       <TableHeader columns={columns}>

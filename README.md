@@ -8,4 +8,4 @@ This template should help get you started developing with Tauri, React and Types
 # pos
 
 
-https://codesandbox.io/p/sandbox/lhkplw?file=%2FApp.jsx
+https://codesandbox.io/p/sandbox/lhkplw?file=%2FApp.jsxe
