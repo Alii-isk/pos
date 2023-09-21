@@ -129,9 +129,10 @@ const App: React.FC = () => {
     <div className="flex flex-col gap-3 w-screen h-screen max-w-4xl mx-auto">
       <Table
         aria-label="Rows actions table example with dynamic content"
-        // selectionMode="multiple"
-        // selectionBehavior={"toggle"}
-        // showSelectionCheckboxes={false}
+        selectionMode="multiple"
+        selectionBehavior={"toggle"}
+        color="primary"
+        // selectedKeys={selectedKeys}
         onRowAction={(key) => {
           console.log("onRowAction", key);
           setCart((x) => {
@@ -160,12 +161,9 @@ const App: React.FC = () => {
         <TableBody items={rows}>
           {(item) => (
             <TableRow 
-            // className="bg-success-100  text-success-600"
-            
             key={item.key}>
               {(columnKey) => (
-                <TableCell
-                >{renderCell(item, columnKey)}</TableCell>
+                <TableCell>{renderCell(item, columnKey)}</TableCell>
               )}
             </TableRow>
           )}
