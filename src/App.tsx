@@ -1,6 +1,7 @@
 import {
   Button,
-  Chip, Input,
+  Chip,
+  Input,
   Modal,
   ModalBody,
   ModalContent,
@@ -8,7 +9,7 @@ import {
   ModalHeader,
   Tooltip,
   User,
-  useDisclosure
+  useDisclosure,
 } from "@nextui-org/react";
 
 import {
@@ -17,7 +18,7 @@ import {
   TableColumn,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
 } from "@nextui-org/react";
 import { Key, useCallback, useState } from "react";
 import { EditIcon } from "./components/icons/EditIcon";
@@ -28,12 +29,12 @@ const App: React.FC = () => {
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const [cart, setCart] = useState([
+  const [cart, setCart] = useState<
     {
-      key: "1",
-      quantity: 2,
-    },
-  ]);
+      key: string;
+      quantity: number;
+    }[]
+  >([]);
   const rows = [
     {
       key: "1",
@@ -77,69 +78,84 @@ const App: React.FC = () => {
     },
   ];
 
-  const renderCell = useCallback((item: any, columnKey: Key) => {
-    const cellValue = item[columnKey];
+  const renderCell = useCallback(
+    (item: any, columnKey: Key) => {
+      const cellValue = item[columnKey];
 
-    switch (columnKey) {
-      case "name":
-        return (
-          <User
-            avatarProps={{ radius: "lg", src: item.pic }}
-            description={item.email}
-            name={cellValue}
-          >
-            {item.email}
-          </User>
-        );
-      case "price":
-        return (
-          <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">
-              dirham
-            </p>
-          </div>
-        );
-      case "quantity":
-        const cartItem = cart.find((i) => i.key === item.key);
-        return (
-          <div className="flex gap-2 justify-center items-center">
-            <Chip
-              className="capitalize"
-              color={"primary"}
-              size="sm"
-              variant="flat"
+      switch (columnKey) {
+        case "name":
+          return (
+            <User
+              avatarProps={{ radius: "lg", src: item.pic }}
+              description={item.email}
+              name={cellValue}
             >
-              x {cartItem === undefined ? 0 : cartItem.quantity}
-            </Chip>
-            <Tooltip content="reset" color="danger">
-              <span className="text-lg  text-danger cursor-pointer active:opacity-50">
-                <DeleteIcon />
-              </span>
-            </Tooltip>
-          </div>
-        );
-      case "actions":
-        return (
-          <div className="relative flex items-center gap-2">
-            <Tooltip content="Edit user" color="secondary">
-              <span className="text-lg  text-secondary cursor-pointer active:opacity-50">
-                <Button
-                  isIconOnly
-                  color="secondary"
-                  onPress={onOpen}
-                  aria-label="Like"
-                >
-                  <EditIcon />
-                </Button>
-              </span>
-            </Tooltip>
-          </div>
-        );
-      default:
-        return cellValue;
-    }
-  }, []);
+              {item.email}
+            </User>
+          );
+        case "price":
+          return (
+            <div className="flex flex-col">
+              <p className="text-bold text-small capitalize">{cellValue}</p>
+              <p className="text-bold text-tiny capitalize text-default-400">
+                dirham
+              </p>
+            </div>
+          );
+        case "quantity":
+          const cartItem = cart.find((i) => i.key === item.key);
+          return (
+            <div className="flex gap-2 justify-center items-center">
+              <Chip
+                className="capitalize"
+                color={"primary"}
+                size="sm"
+                variant="flat"
+              >
+                x {cartItem === undefined ? 0 : cartItem.quantity}
+              </Chip>
+              <Tooltip content="reset" color="danger">
+                <span className="text-lg  text-danger cursor-pointer active:opacity-50">
+                  <DeleteIcon
+                    onClick={() => {
+                      const newCart = cart.filter((i) => i.key !== item.key);
+                      setCart(newCart);
+                    }}
+                  />
+                </span>
+              </Tooltip>
+            </div>
+          );
+        case "actions":
+          return (
+            <div className="relative flex items-center gap-2">
+              <Tooltip content="Edit user" color="secondary">
+                <span className="text-lg  text-secondary cursor-pointer active:opacity-50">
+                  <Button
+                    isIconOnly
+                    color="secondary"
+                    onPress={onOpen}
+                    aria-label="Like"
+                  >
+                    <EditIcon />
+                  </Button>
+                </span>
+              </Tooltip>
+            </div>
+          );
+        default:
+          return cellValue;
+      }
+    },
+    [cart]
+  );
+
+  const isInCart = useCallback(
+    (key: string) => {
+      return cart.find((i) => i.key === key) !== undefined;
+    },
+    [cart]
+  );
 
   return (
     <div className="flex flex-col gap-3 w-screen h-screen max-w-4xl mx-auto">
@@ -148,23 +164,29 @@ const App: React.FC = () => {
         color="primary"
         // selectedKeys={['1']}
         onRowAction={(key) => {
-          console.log("onRowAction", key);
-          setCart((x) => {
-            const item = x.find((i) => i.key === key);
-            if (item) {
-              item.quantity += 1;
-            } else {
-              x.push({ key: key.toString(), quantity: 1 });
-            }
-            return [...x];
-          });
-          if (selectedKeys.includes(key.toString())) {
-            // setSelectedKeys(selectedKeys.filter((k) => k !== key));
-            console.log("already selected");
+          // check if cart has item
+          const cartItem = cart.find((i) => i.key === key);
+          if (cartItem === undefined) {
+            // add item to cart
+            setCart((x) => [
+              ...x,
+              {
+                key: key.toString(),
+                quantity: 1,
+              },
+            ]);
+            console.log({ cart });
           } else {
-            setSelectedKeys((x) => [...x, key.toString()]);
+            // update item
+            const newCart = cart.map((i) => {
+              if (i.key === key) {
+                return { ...i, quantity: i.quantity + 1 };
+              }
+              return i;
+            });
+            console.log({ newCart });
+            setCart(newCart);
           }
-          //increace quantity
         }}
       >
         <TableHeader columns={columns}>
@@ -173,18 +195,27 @@ const App: React.FC = () => {
           )}
         </TableHeader>
         <TableBody items={rows}>
-          {(item) => (
-            <TableRow className="hover:bg-success-100" key={item.key}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey)}</TableCell>
-              )}
-            </TableRow>
-          )}
+          {(item) => {
+            console.log({ isInCart: isInCart(item.key) });
+            return (
+              <TableRow
+                className={`${isInCart(item.key) ? "bg-success-200" : "hover:opacity-"}`}
+                key={item.key}
+              >
+                {(columnKey) => (
+                  <TableCell>{renderCell(item, columnKey)}</TableCell>
+                )}
+              </TableRow>
+            );
+          }}
         </TableBody>
       </Table>
-      <Modal 
-      placement="center"
-      isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false}>
+      <Modal
+        placement="center"
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        isDismissable={false}
+      >
         <ModalContent>
           {(onClose) => (
             <>
@@ -192,50 +223,55 @@ const App: React.FC = () => {
                 Modal Title
               </ModalHeader>
               <ModalBody>
-             <div className="flex flex-col
-              gap-4">
-             <div className="flex gap-2 items-center">
-                  <Button isIconOnly color="danger" aria-label="Like">
-                    <DeleteIcon />
-                  </Button>
-                  <Input
-                  readOnly
-                    placeholder="0.00"
-                    className="max-w-[70px]"
-                    labelPlacement="outside"
-                    endContent={
-                      <div className="pointer-events-none flex items-center">
-                        <span className="text-default-400 text-small">د.م </span>
-                      </div>
-                    }
-                  />
-                  <Button
-                    isIconOnly
-                    color="warning"
-                    variant="faded"
-                    aria-label="Take a photo"
-                  >
-                    <SearchIcon />
-                  </Button>
-                  <h1 className="ml-auto">الكمية</h1>
+                <div
+                  className="flex flex-col
+              gap-4"
+                >
+                  <div className="flex gap-2 items-center">
+                    <Button isIconOnly color="danger" aria-label="Like">
+                      <DeleteIcon />
+                    </Button>
+                    <Input
+                      readOnly
+                      placeholder="0.00"
+                      className="max-w-[70px]"
+                      labelPlacement="outside"
+                      endContent={
+                        <div className="pointer-events-none flex items-center">
+                          <span className="text-default-400 text-small">
+                            د.م{" "}
+                          </span>
+                        </div>
+                      }
+                    />
+                    <Button
+                      isIconOnly
+                      color="warning"
+                      variant="faded"
+                      aria-label="Take a photo"
+                    >
+                      <SearchIcon />
+                    </Button>
+                    <h1 className="ml-auto">الكمية</h1>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      readOnly
+                      placeholder="0.00"
+                      className="max-w-[170px]"
+                      labelPlacement="outside"
+                      endContent={
+                        <div className="pointer-events-none flex items-center">
+                          <span className="text-default-400 text-small">
+                            د.م{" "}
+                          </span>
+                        </div>
+                      }
+                    />
+
+                    <h1 className="ml-auto">الثمن</h1>
+                  </div>
                 </div>
-                <div className="flex gap-2 items-center">
-                
-                  <Input
-                  readOnly
-                    placeholder="0.00"
-                    className="max-w-[170px]"
-                    labelPlacement="outside"
-                    endContent={
-                      <div className="pointer-events-none flex items-center">
-                        <span className="text-default-400 text-small">د.م </span>
-                      </div>
-                    }
-                  />
-                 
-                  <h1 className="ml-auto">الثمن</h1>
-                </div>
-             </div>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
