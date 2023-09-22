@@ -1,13 +1,14 @@
-import { useUIStore } from "./store/ui";
 import {
   Button,
-  Chip,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
+  Chip, Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
   Tooltip,
   User,
+  useDisclosure
 } from "@nextui-org/react";
 
 import {
@@ -16,19 +17,17 @@ import {
   TableColumn,
   TableBody,
   TableRow,
-  TableCell,
-  getKeyValue,
-  Radio,
-  RadioGroup,
+  TableCell
 } from "@nextui-org/react";
 import { Key, useCallback, useState } from "react";
-import { VerticalDotsIcon } from "./components/icons/VerticalDotsIcon";
 import { EditIcon } from "./components/icons/EditIcon";
 import { DeleteIcon } from "./components/icons/DeleteIcon";
+import { SearchIcon } from "./components/icons/SearchIcon";
 
 const App: React.FC = () => {
-  const [selectionBehavior, setSelectionBehavior] = useState("toggle");
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   const [cart, setCart] = useState([
     {
       key: "1",
@@ -41,18 +40,21 @@ const App: React.FC = () => {
       name: "Tony Reichert",
       price: "12.33",
       quantity: 0,
+      pic: "https://cdn.bic.com/media/catalog/product/cache/f794010ace31b648ca7ce8cbac4f31be/g/s/gsmg144e-a-blk_grouping.jpg",
     },
     {
       key: "2",
       name: "Laurie Borer",
       price: "12.33",
       quantity: 0,
+      pic: "https://cdn.bic.com/media/catalog/product/cache/f794010ace31b648ca7ce8cbac4f31be/g/s/gsmg144e-a-blk_grouping.jpg",
     },
     {
       key: "3",
       name: "Laurie Borer",
       price: "2.33",
       quantity: 0,
+      pic: "https://cdn.bic.com/media/catalog/product/cache/f794010ace31b648ca7ce8cbac4f31be/g/s/gsmg144e-a-blk_grouping.jpg",
     },
   ];
 
@@ -82,7 +84,7 @@ const App: React.FC = () => {
       case "name":
         return (
           <User
-            avatarProps={{ radius: "lg", src: item.avatar }}
+            avatarProps={{ radius: "lg", src: item.pic }}
             description={item.email}
             name={cellValue}
           >
@@ -101,21 +103,35 @@ const App: React.FC = () => {
       case "quantity":
         const cartItem = cart.find((i) => i.key === item.key);
         return (
-          <Chip
-            className="capitalize"
-            color={"primary"}
-            size="sm"
-            variant="flat"
-          >
-            x {cartItem === undefined ? 0 : cartItem.quantity}
-          </Chip>
+          <div className="flex gap-2 justify-center items-center">
+            <Chip
+              className="capitalize"
+              color={"primary"}
+              size="sm"
+              variant="flat"
+            >
+              x {cartItem === undefined ? 0 : cartItem.quantity}
+            </Chip>
+            <Tooltip content="reset" color="danger">
+              <span className="text-lg  text-danger cursor-pointer active:opacity-50">
+                <DeleteIcon />
+              </span>
+            </Tooltip>
+          </div>
         );
       case "actions":
         return (
           <div className="relative flex items-center gap-2">
             <Tooltip content="Edit user" color="secondary">
               <span className="text-lg  text-secondary cursor-pointer active:opacity-50">
-                <EditIcon />
+                <Button
+                  isIconOnly
+                  color="secondary"
+                  onPress={onOpen}
+                  aria-label="Like"
+                >
+                  <EditIcon />
+                </Button>
               </span>
             </Tooltip>
           </div>
@@ -129,10 +145,8 @@ const App: React.FC = () => {
     <div className="flex flex-col gap-3 w-screen h-screen max-w-4xl mx-auto">
       <Table
         aria-label="Rows actions table example with dynamic content"
-        selectionMode="multiple"
-        selectionBehavior={"toggle"}
         color="primary"
-        // selectedKeys={selectedKeys}
+        // selectedKeys={['1']}
         onRowAction={(key) => {
           console.log("onRowAction", key);
           setCart((x) => {
@@ -160,8 +174,7 @@ const App: React.FC = () => {
         </TableHeader>
         <TableBody items={rows}>
           {(item) => (
-            <TableRow 
-            key={item.key}>
+            <TableRow className="hover:bg-success-100" key={item.key}>
               {(columnKey) => (
                 <TableCell>{renderCell(item, columnKey)}</TableCell>
               )}
@@ -169,6 +182,73 @@ const App: React.FC = () => {
           )}
         </TableBody>
       </Table>
+      <Modal 
+      placement="center"
+      isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Modal Title
+              </ModalHeader>
+              <ModalBody>
+             <div className="flex flex-col
+              gap-4">
+             <div className="flex gap-2 items-center">
+                  <Button isIconOnly color="danger" aria-label="Like">
+                    <DeleteIcon />
+                  </Button>
+                  <Input
+                  readOnly
+                    placeholder="0.00"
+                    className="max-w-[70px]"
+                    labelPlacement="outside"
+                    endContent={
+                      <div className="pointer-events-none flex items-center">
+                        <span className="text-default-400 text-small">د.م </span>
+                      </div>
+                    }
+                  />
+                  <Button
+                    isIconOnly
+                    color="warning"
+                    variant="faded"
+                    aria-label="Take a photo"
+                  >
+                    <SearchIcon />
+                  </Button>
+                  <h1 className="ml-auto">الكمية</h1>
+                </div>
+                <div className="flex gap-2 items-center">
+                
+                  <Input
+                  readOnly
+                    placeholder="0.00"
+                    className="max-w-[170px]"
+                    labelPlacement="outside"
+                    endContent={
+                      <div className="pointer-events-none flex items-center">
+                        <span className="text-default-400 text-small">د.م </span>
+                      </div>
+                    }
+                  />
+                 
+                  <h1 className="ml-auto">الثمن</h1>
+                </div>
+             </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button color="primary" onPress={onClose}>
+                  Action
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
