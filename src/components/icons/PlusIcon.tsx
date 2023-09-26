@@ -4,11 +4,7 @@ export const PlusIcon = ({
   width,
   height,
   ...props
-}: {
-  size?: number;
-  width?: number;
-  height?: number;
-}) => (
+}: any) => (
   <svg
     aria-hidden="true"
     fill="none"

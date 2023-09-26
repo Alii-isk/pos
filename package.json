@@ -13,6 +13,7 @@
     "@nanostores/react": "^0.7.1",
     "@nextui-org/react": "^2.1.13",
     "@tauri-apps/api": "^1.4.0",
+    "boxicons": "^2.1.4",
     "framer-motion": "^10.16.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
