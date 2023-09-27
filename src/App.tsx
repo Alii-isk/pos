@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import {
   Table,
@@ -23,6 +23,7 @@ import { SearchIcon } from "./components/icons/SearchIcon";
 import { PlusIcon } from "./components/icons/PlusIcon";
 import { VerticalDotsIcon } from "./components/icons/VerticalDotsIcon";
 import { useCartStore } from "./store/ui";
+import useShiftHolded from "./hooks/useShiftHolded";
 
 const INITIAL_VISIBLE_COLUMNS = ["name", "quantity", "price", "actions"];
 
@@ -33,6 +34,13 @@ export default function App() {
   const inCartProducts = useCartStore((x) => x.products);
   const addToCart = useCartStore((x) => x.addProduct);
   const removeFromCart = useCartStore((x) => x.removeProduct);
+  const incrementProductQuantity = useCartStore(
+    (x) => x.increaseProductQuantity
+  );
+  const decrementProductQuantity = useCartStore(
+    (x) => x.decreaseProductQuantity
+  );
+  const isShiftHolded = useShiftHolded();
 
   const [visibleColumns, _] = React.useState<Selection>(
     new Set(INITIAL_VISIBLE_COLUMNS)
@@ -43,6 +51,16 @@ export default function App() {
     column: "name",
     direction: "ascending",
   });
+
+  useEffect(() => {
+    const noContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("contextmenu", noContextMenu);
+    return () => {
+      window.removeEventListener("contextmenu", noContextMenu);
+    };
+  }, []);
 
   const [page, setPage] = React.useState(1);
 
@@ -67,8 +85,6 @@ export default function App() {
 
     return filteredProducts;
   }, [products, filterValue, statusFilter]);
-
-  const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -112,9 +128,19 @@ export default function App() {
             </div>
           );
         case "quantity":
+          //get the quantity of the product in the cart
+          const quantity =
+            inCartProducts.find(
+              (x) => x.id.toString() === product.id.toString()
+            )?.quantity || 0;
           return (
             <div className="flex gap-1 items-center">
-              <Button isIconOnly size="sm" variant="light">
+              <Button
+                onClick={() => decrementProductQuantity(product)}
+                isIconOnly
+                size="sm"
+                variant="light"
+              >
                 <PlusIcon className="text-default-300" />
               </Button>
               <Chip
@@ -123,9 +149,9 @@ export default function App() {
                 size="sm"
                 variant="flat"
               >
-                x 2
+                x {quantity}
               </Chip>
-              <Button isIconOnly size="sm" variant="light">
+              <Button  onClick={() => incrementProductQuantity(product)} isIconOnly size="sm" variant="light">
                 <PlusIcon className="text-default-300" />
               </Button>
             </div>
@@ -151,9 +177,8 @@ export default function App() {
           return cellValue;
       }
     },
-    []
+    [inCartProducts.length]
   );
-
 
   const onSearchChange = React.useCallback((value?: string) => {
     if (value) {
@@ -202,7 +227,7 @@ export default function App() {
     onSearchChange,
     products.length,
     hasSearchFilter,
-    inCartProducts.length
+    inCartProducts,
   ]);
 
   return (
@@ -218,20 +243,19 @@ export default function App() {
         topContent={topContent}
         topContentPlacement="outside"
         onSortChange={setSortDescriptor}
-        onRowAction={
-          (item) => {
-            const product = products.find((product) => product.id.toString() === item.toString());
-            if (product) {
-            addToCart({
-              id: product.id,
-              name: product.name,
-              price: parseFloat(product.price),
-              photo: product.photo,
-              quantity: 1,
-            })
+        onRowAction={(item) => {
+          const product = products.find(
+            (product) => product.id.toString() === item.toString()
+          );
+          if (product) {
+            if (isShiftHolded) {
+              //remove from cart
+              removeFromCart(product.id);
+              return;
+            }
+            addToCart(product);
           }
-          }
-        }
+        }}
       >
         <TableHeader columns={headerColumns}>
           {(column) => (
@@ -245,16 +269,40 @@ export default function App() {
           )}
         </TableHeader>
         <TableBody emptyContent={"No products found"} items={sortedItems}>
-          {(item) => (
+          {items.map((item) => {
+            const isInCart =
+              inCartProducts.find(
+                (x) => x.id.toString() === item.id.toString()
+              ) !== undefined;
+            return (
+              <TableRow
+                // className="cursor-pointer  active:outline-none active:bg-gray-100"
+                // if incart has the product then add the class
+
+                className={`cursor-pointer ${
+                  isInCart ? "hover:bg-gray-200" : "hover:bg-gray-200"
+                } ${isInCart ? "bg-gray-100" : ""}`}
+                key={item.id}
+              >
+                {(columnKey) => (
+                  <TableCell>{renderCell(item, columnKey)}</TableCell>
+                )}
+              </TableRow>
+            );
+          })}
+
+          {/* {(item) => (
             <TableRow
-              className="cursor-pointer  active:outline-none active:bg-gray-100"
+              // className="cursor-pointer  active:outline-none active:bg-gray-100"
+
+              className="cursor-pointer  hover:bg-gray-50"
               key={item.id}
             >
               {(columnKey) => (
                 <TableCell>{renderCell(item, columnKey)}</TableCell>
               )}
             </TableRow>
-          )}
+          )} */}
         </TableBody>
       </Table>
     </div>

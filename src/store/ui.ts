@@ -28,6 +28,8 @@ export interface ICart {
   products: IProduct[];
   addProduct: (product: IProduct) => void;
   removeProduct: (productId: number) => void;
+  increaseProductQuantity: (product: IProduct) => void;
+  decreaseProductQuantity: (product: IProduct) => void;
   clearCart: () => void;
 }
 
@@ -36,13 +38,38 @@ export const useCartStore = create<ICart>((set, get) => ({
   addProduct: (product: IProduct) => {
     const products = [...get().products];
     const productIndex = products.findIndex((p) => p.id === product.id);
+    console.log("add",productIndex)
     if (productIndex === -1) {
       products.push(product);
+      // change quantity to 1
+      products[products.length - 1].quantity = 1;
+      set({ products });
+    } 
+  },
+  increaseProductQuantity: (product: IProduct) => {
+    const products = [...get().products];
+    const productIndex = products.findIndex((p) => p.id === product.id);
+    if (productIndex !== -1) {
+      products[productIndex].quantity += 1;
     } else {
-      products[productIndex].quantity += product.quantity;
+      get().addProduct(product);
     }
     set({ products });
   },
+  decreaseProductQuantity: (product: IProduct) => {
+    const products = [...get().products];
+    const productIndex = products.findIndex((p) => p.id === product.id);
+    // do not allow to decrease quantity below 0 if quantity is 0 remove product
+    if (productIndex !== -1) {
+      if (products[productIndex].quantity > 0) {
+        products[productIndex].quantity -= 1;
+      } else {
+        get().removeProduct(product.id);
+      }
+    }
+    set({ products });
+  },
+
   removeProduct: (productId: number) => {
     const products = [...get().products];
     const productIndex = products.findIndex((p) => p.id === productId);
